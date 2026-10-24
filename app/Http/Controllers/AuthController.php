@@ -9,7 +9,6 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // Registrasi pengguna baru
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -21,7 +20,7 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => $validated['password'],
+            'password' => Hash::make($validated['password']),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -33,7 +32,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // Login pengguna
     public function login(Request $request)
     {
         $validated = $request->validate([
@@ -43,10 +41,10 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check(
-            $validated['password'],
-            $user->password
-        )) {
+        if (
+            !$user ||
+            !Hash::check($validated['password'], $user->password)
+        ) {
             throw ValidationException::withMessages([
                 'email' => ['Email atau password salah.'],
             ]);
@@ -61,10 +59,13 @@ class AuthController extends Controller
         ]);
     }
 
-    // Logout pengguna
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+
+        if ($token) {
+            $token->delete();
+        }
 
         return response()->json([
             'message' => 'Logout successful',

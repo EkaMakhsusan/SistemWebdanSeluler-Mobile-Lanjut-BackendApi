@@ -17,10 +17,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'request.logger' => RequestLogger::class,
         ]);
+
+        $middleware->redirectGuestsTo(
+            fn (Request $request) => $request->is('api/*')
+                ? null
+                : '/login'
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request, \Throwable $exception) =>
+            fn (Request $request, Throwable $exception) =>
                 $request->is('api/*') || $request->expectsJson()
         );
-    })->create();
+    })
+    ->create();
