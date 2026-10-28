@@ -1,0 +1,7 @@
+kind: wasmer.io/App.v0
+name: laravel-api-ekamakhsusan
+owner: ekamakhsusan
+package: .
+capabilities:
+  database:
+    engine: mysql
